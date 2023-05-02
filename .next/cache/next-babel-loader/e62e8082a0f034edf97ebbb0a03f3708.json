@@ -1,0 +1,1 @@
+{"ast":null,"code":"import React from \"react\";\nvar __jsx = React.createElement;\nimport Layout from '../components/Layout.js';\n\nvar Test = function Test() {\n  return __jsx(Layout, null, __jsx(\"p\", null, \"This is the test page!\"));\n};\n\nexport default Test;","map":null,"metadata":{},"sourceType":"module"}

@@ -1,0 +1,163 @@
+version: '3'
+
+volumes:
+  mysql_data:
+      driver: local
+
+services:
+  eidas-proxy:
+      image: endimion13/eidas-proxy:0.0.1f
+      environment:
+        TEST: test
+        SP_CONFIG_REPOSITORY: /configEidas/
+      volumes:
+        - /home/user/configEidas:/configEidas 
+      ports:
+        - 8082:8081  
+      links:
+        - memcached
+
+  mysql:
+      image: mysql:5.7
+      volumes:
+        - mysql_data:/var/lib/mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: keycloak
+        MYSQL_USER: keycloak
+        MYSQL_PASSWORD: password
+
+  keycloak:
+      # image:  jboss/keycloak:latest
+      image: endimion13/ssi-cloak:0.0.1a
+      environment:
+        _JAVA_OPTIONS: -Dlogback.configurationFile=/logs/config.xml
+        PROXY_ADDRESS_FORWARDING: 'true'
+        SP_CONFIG_REPOSITORY: /configEidas/
+        DB_VENDOR: MYSQL
+        DB_ADDR: mysql
+        DB_DATABASE: keycloak
+        DB_USER: keycloak
+        DB_PASSWORD: password
+        KEYCLOAK_USER: admin
+        KEYCLOAK_PASSWORD: Pa55w0rd
+        # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the MySQL JDBC driver documentation in order to use it.
+        #JDBC_PARAMS: "connectTimeout=30000"
+        UPORTHELPER: http://uporthelper:3000
+        # TODO
+        JOLOHELPER: http://jolohelper:6000
+        # !!!!!!!!!!!!!!!!!!!!!
+        CALLBACK_MOBILE:  https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/proceedMobile
+        PERSONAL_CALLBACK_MOBILE:  https://dss1.aegean.gr/auth/realms/SSI/ssi-personal/proceedMobile
+        #TODO
+        CALLBACK_JOLO:  http://loclahost:8081/auth/realms/SSI/ssi-sp/joloResponse
+        CALLBACK:  https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/uportResponse
+        # TODO
+        JOLOHELPER_REQUEST_ENDPOINT: connectionRequestJolo  
+        UPORTHELPER_REQUEST_ENDPOINT: connectionRequest   
+        PERSONAL_CALLBACK:  https://dss1.aegean.gr/auth/realms/SSI/ssi-personal/uportResponse   
+        AUTH_PROCEED: https://dss1.aegean.gr/auth/realms/SSI/protocol/openid-connect/auth
+        EVENT_SOURCE: https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/subscribe
+        PERSONAL_EVENT_SOURCE: https://dss1.aegean.gr/auth/realms/SSI/ssi-personal/subscribe
+        SSI_REPLY_POST: https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/proceed
+        PERSONAL_SSI_REPLY_POST: https://dss1.aegean.gr/auth/realms/SSI/ssi-personal/proceed
+        AMKA_AUTH_PROCEED: https://dss1.aegean.gr/auth/realms/amka/protocol/openid-connect/auth
+        POST_AMKA_URI: https://dss1.aegean.gr/auth/realms/amka/amka-sp/amka
+        AFTER_AMKA_URI:  https://dss1.aegean.gr/auth/realms/amka/amka-sp/proceed
+        AFTER_ACID_URI:  https://dss1.aegean.gr/auth/realms/academicId/acid-sp/proceed
+        POST_ACID_URI:  https://dss1.aegean.gr/auth/realms/academicId/acid-sp/acid
+        MINEDU_TOKEN_URL: https://validation.interoperability.gr:9443/OAUTH2Proxy_1.0.0/services/oauthproxy/authorization/token
+        MINEDU_TOKEN_USERNAME: User042662532
+        MINEDU_TOKEN_PASSWORD: k6v5sS4l1s!%
+        MINEDU_TOKEN_GRANTTYPE: password
+        MINEDU_QUERYID_URL: https://gateway.interoperability.gr/academicId/1.0.1/queryID
+        MINEDU_QUERY_AMKA_URL: https://gateway.interoperability.gr/amkacheck/1.0.1/
+        MINEDU_QUERY_BY_AMKA: https://gateway.interoperability.gr/academicId/1.0.1/student/
+        MITRO_AUTH_PROCEED: https://dss1.aegean.gr/auth/realms/mitroPoliton/protocol/openid-connect/auth
+        POST_MITRO_URI: https://dss1.aegean.gr/auth/realms/mitroPoliton/mitro-sp/mitro
+        AFTER_MITRO_URI: https://dss1.aegean.gr/auth/realms/mitroPoliton/mitro-sp/proceed
+        MINEDU_QUERY_MITRO_URL: https://gateway.interoperability.gr/1.0.0/mitrwopolitwn/
+        SUPERVISOR_NAME: User042662532
+        SUPERVISOR_PASSWORD: k6v5sS4l1s!%
+        TAXIS_CLIENT_ID: T7AFJF23917
+        TAXIS_CLIENT_SECRET: LBh4wq2mQYQN7vP
+        TAXIS_REDIRECT_URI: https://dss1.aegean.gr/auth/realms/taxis/taxis-sp/callback
+        TAXIS_OAUTH2_URL_AUTHORIZE: https://test.gsis.gr/oauth2server/oauth/authorize
+        TAXIS_ACCESS_TOKEN_ENDPOINT: https://test.gsis.gr/oauth2server/oauth/token
+        TAXIS_AUTH_PROCEED: https://dss1.aegean.gr/auth/realms/taxis/protocol/openid-connect/auth
+        TAXIS_URL_RESOURCE_OWNER_DETAILS: https://test.gsis.gr/oauth2server/userinfo?format=xml 
+        EIDAS_PROXY_SAML_ENDPOINT: https://dss1.aegean.gr/proxy/makeRequest
+        EIDAS_NODE_URI: https://pre.eidas.gov.gr/EidasNode/ServiceProvider
+#        GRNET_ACCESS_TOKEN_ENDPOINT: https://eid-proxy.aai-dev.grnet.gr/OIDC/token
+#        GRNET_CLIENT_ID: emC56Gq4RGCT2rmH
+#        GRNET_CLIENT_SECRET: ~UL_@iUh8{JrYyEQ'Vd6a_8%q,;~DcJ%
+#        GRNET_REDIRECT_URI: https://dss1.aegean.gr/auth/realms/grnetEidas/eidas-sp/endpoint
+#        GRNET_OAUTH2_URL_AUTHORIZE: https://eid-proxy.aai-dev.grnet.gr/OIDC/authorization
+#        GRNET_AUTH_PROCEED: https://dss1.aegean.gr/auth/realms/grnetEidas/protocol/openid-connect/auth  
+#        GRNET_RESOURCE_OWNER_DETAILS: https://eid-proxy.aai-dev.grnet.gr/OIDC/userinfo
+        GRNET_CLIENT_ID: emC56Gq4RGCT2rmH
+        GRNET_CLIENT_SECRET: ~UL_@iUh8{JrYyEQ'Vd6a_8%q,;~DcJ%
+        GRNET_REDIRECT_URI: https://dss1.aegean.gr/auth/realms/grnetEidas/eidas-sp/endpoint
+        GRNET_AUTH_PROCEED: https://dss1.aegean.gr/auth/realms/grnetEidas/protocol/openid-connect/auth
+        GRNET_OAUTH2_URL_AUTHORIZE: https://eid-proxy.aai-dev.grnet.gr/oidc/authorization
+        GRNET_ACCESS_TOKEN_ENDPOINT: https://eid-proxy.aai-dev.grnet.gr/oidc/token
+        GRNET_RESOURCE_OWNER_DETAILS: https://eid-proxy.aai-dev.grnet.gr/oidc/userinfo
+        JAVA_TOOLS_OPTS: "-Djboss.as.management.blocking.timeout=7200"
+      ports:
+        - 8081:8080
+      volumes:
+        - ./keyConfig:/keyConfig
+        - ./logs2:/opt/jboss/keycloak/logs
+        - ../certs:/opt/jboss/keycloak/certs
+      depends_on:
+        - mysql
+        - memcached
+      links:
+        - memcached:memcached
+        - jolohelper:jolohelper
+
+
+  memcached:
+    image: sameersbn/memcached:1.5.6-2
+    ports:
+      - 11111:11211
+
+  # uporthelper:
+  #   image: endimion13/uport-verifier:0.0.4f
+  #   environment:
+  #     PRODUCTION: "true"
+  #     KEYCLOAK: https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/ssiResponseJolo
+  #     KEYCLOAK_MOBILE: https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/proceedMobile
+  #     MEMECACHED: memcached:11211
+  #   links:
+  #     - memcached
+  #   ports:
+  #     - 3000:3000
+
+
+  jolohelper:
+    image: endimion13/jolocom-verifier:0.0.1u
+    environment:
+      PRODUCTION: "true"
+      KEYCLOAK: https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/ssiResponseJolo
+      KEYCLOAK_MOBILE: https://dss1.aegean.gr/auth/realms/SSI/ssi-sp/proceedMobile
+      MEMECACHED: memcached:11211
+      PORT: "6000"
+    links:
+      - memcached
+    ports:
+      - 6000:6000
+
+
+
+
+  taxis-logger:
+      image: endimion13/taxis-logger:0.0.1
+      environment:
+        NODE_ENV: production
+        PORT: 8088
+        LOG_FOLDER: "/logs"
+      volumes:
+        - ./logs2:/logs 
+      ports:
+        - 8088:8088  

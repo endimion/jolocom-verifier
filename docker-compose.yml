@@ -1,0 +1,20 @@
+version: '3'
+
+volumes:
+  mysql_data:
+      driver: local
+
+services:
+
+  jolohelper:
+    image: endimion13/jolocom-verifier:0.0.1a 
+    environment:
+      PRODUCTION: "true"
+      KEYCLOAK: http://localhost:8081/auth/realms/erua-verifier/ssi-sp/ssiResponseJolo
+      KEYCLOAK_MOBILE: =http://localhost:8081/auth/realms/erua-verifier/ssi-sp/ssiResponseJolo/proceedMobile
+      #MEMECACHED: memcached:11211
+      PORT: "6000"
+    # links:
+    #   - memcached
+    ports:
+      - 6000:6000
